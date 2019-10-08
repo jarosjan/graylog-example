@@ -1,2 +1,2 @@
-# graylog-example
-SO qeustion for graylog running in docker container
+# kotlin_playground
+Kotlin sandbox

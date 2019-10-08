@@ -1,0 +1,62 @@
+version: '3.4'
+
+services:
+
+  mongo:
+    container_name: graylog_mongo
+    image: mongo:3
+    volumes:
+      - mongo_data:/data/db
+
+  elasticsearch:
+    container_name: graylog_elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.2
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - "http.host=0.0.0.0"
+      - "transport.host=localhost"
+      - "network.host=0.0.0.0"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "bootstrap.memory_lock=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  graylog:
+    container_name: graylog_graylog
+    image: graylog/graylog:3.1
+    volumes:
+      - graylog_journal:/usr/share/graylog/data/journal
+    environment:
+      - "GRAYLOG_PASSWORD_SECRET=ArrangeObsoleteSingeSignal1000100"
+      - "GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+      - "GRAYLOG_HTTP_EXTERNAL_URI=http://localhost:9000/"
+    depends_on:
+      - mongo
+      - elasticsearch
+    ports:
+      - "9000:9000"
+      - "12201:12201"
+      - "12201:12201/udp"
+
+  kotlin_app:
+    container_name: graylog_app
+    image: kotlin_app
+    build:
+      context: .
+    volumes:
+      - kotlin_app:/usr/share/kotlinapp/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - graylog
+    links:
+      - graylog
+
+volumes:
+  mongo_data:
+  elasticsearch_data:
+  graylog_journal:
+  kotlin_app:
